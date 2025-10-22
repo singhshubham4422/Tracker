@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shubham's 14-Week Daily Job Comeback Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .save-indicator {
+            background: rgba(255,255,255,0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+
+        .firebase-status {
+            background: rgba(255,255,255,0.15);
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            margin-top: 8px;
+            display: inline-block;
+        }
+
+        .progress-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 30px;
+            background: #f8f9fa;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .stat-card h3 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+
+        .stat-card p {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .nav-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .week-nav {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .nav-btn {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+        }
+
+        .nav-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .week-indicator {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #667eea;
+            padding: 10px 20px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .week-title {
+            font-size: 1.8em;
+            color: #667eea;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .day-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .day-card:hover {
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
+
+        .day-card.completed {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            border: 2px solid #28a745;
+        }
+
+        .day-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .day-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .day-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .day-date {
+            font-size: 1.1em;
+            color: #666;
+        }
+
+        .complete-day-btn {
+            padding: 10px 20px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .complete-day-btn:hover {
+            background: #218838;
+        }
+
+        .complete-day-btn.completed {
+            background: #6c757d;
+        }
+
+        .tasks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+        }
+
+        .task-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .task-label {
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+
+        .task-content {
+            color: #333;
+            font-size: 0.95em;
+            line-height: 1.4;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            padding: 30px;
+            background: #f8f9fa;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .filter-section {
+            padding: 20px 30px;
+            background: #e9ecef;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn:hover, .filter-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .setup-banner {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 20px;
+            margin: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .setup-banner h3 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .setup-banner p {
+            color: #856404;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .tasks-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .day-header {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Shubham's 14-Week Daily Job Comeback Tracker</h1>
+            <p>Oct 23, 2025 – Feb 1, 2026</p>
+            <div class="save-indicator" id="saveIndicator">🔄 Initializing...</div>
+            <div class="firebase-status" id="firebaseStatus">🔥 Connecting to Firebase...</div>
+        </div>
+
+        <!-- Setup Instructions Banner -->
+        <div class="setup-banner" id="setupBanner">
+            <h3>⚙️ Firebase Setup Required</h3>
+            <p>Please replace the Firebase config below with your own credentials. See instructions after the code!</p>
+        </div>
+
+        <div class="progress-overview">
+            <div class="stat-card">
+                <h3 id="totalDays">98</h3>
+                <p>Total Days</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="completedDays">0</h3>
+                <p>Days Completed</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="progressPercent">0%</h3>
+                <p>Overall Progress</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="currentStreak">0</h3>
+                <p>Day Streak</p>
+            </div>
+        </div>
+
+        <div class="nav-controls">
+            <div class="week-nav">
+                <button class="nav-btn" id="prevBtn">← Previous</button>
+                <div class="week-indicator" id="weekIndicator">Week 1</div>
+                <button class="nav-btn" id="nextBtn">Next →</button>
+            </div>
+            <button class="nav-btn" id="todayBtn">📅 Today</button>
+        </div>
+
+        <div class="filter-section">
+            <span style="font-weight: bold; color: #667eea;">Quick Filter:</span>
+            <button class="filter-btn active" id="filterAll">All Days</button>
+            <button class="filter-btn" id="filterCompleted">Completed</button>
+            <button class="filter-btn" id="filterPending">Pending</button>
+        </div>
+
+        <div class="content" id="daysContainer"></div>
+
+        <div class="action-buttons">
+            <button class="btn btn-secondary" id="resetBtn">🔄 Reset All Progress</button>
+            <button class="btn btn-primary" id="exportBtn">📋 Copy Progress Report</button>
+        </div>
+    </div>
+
+    <!-- Firebase SDK - Compat version for easier usage -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <script>
+        // ⚙️ FIREBASE CONFIGURATION
+        const firebaseConfig = {
+            apiKey: "AIzaSyCVNWlg5Ais2rbw26wDqCRtD--7hY_8RKA",
+            authDomain: "tracker-2dd49.firebaseapp.com",
+            databaseURL: "https://tracker-2dd49-default-rtdb.firebaseio.com",
+            projectId: "tracker-2dd49",
+            storageBucket: "tracker-2dd49.firebasestorage.app",
+            messagingSenderId: "469768103067",
+            appId: "1:469768103067:web:0fe834acf7b57f22b7123e"
+        };
+
+        // Initialize Firebase
+        let database;
+        let isFirebaseConfigured = false;
+
+        try {
+            firebase.initializeApp(firebaseConfig);
+            database = firebase.database();
+            isFirebaseConfigured = true;
+            document.getElementById('setupBanner').style.display = 'none';
+            updateFirebaseStatus('✅ Connected', '#28a745');
+        } catch (error) {
+            console.error('Firebase initialization error:', error);
+            updateFirebaseStatus('❌ Config Error', '#dc3545');
+        }
+
+        function updateFirebaseStatus(text, color) {
+            const status = document.getElementById('firebaseStatus');
+            status.textContent = text;
+            status.style.background = color + '33';
+            status.style.color = color;
+        }
+
+        // Global variables
+        let currentWeekIndex = 0;
+        let currentFilter = 'all';
+        let progressData = {};
+        const USER_ID = 'shubham_user'; // You can make this dynamic later
+
+        // Sample data for weeks
+        const weeksData = [
+            {
+                title: "Week 1 (Oct 23 – Oct 29) – Reboot & Build Base",
+                days: [
+                    { day: "Thu", date: "Oct 23", python: "Python syntax, variables, print", dsa: "Array basics", core: "OS: Process & Scheduling intro", aptitude: "Percentages", reasoning: "Blood relations", verbal: "Grammar basics", project: '"Hello World" script' },
+                    { day: "Fri", date: "Oct 24", python: "Loops (for, while), conditional statements", dsa: "String basics", core: "CN: OSI Layers intro", aptitude: "Ratios & Averages", reasoning: "Directions sense", verbal: "Reading comprehension", project: "Python: input marks, print total" },
+                    { day: "Sat", date: "Oct 25", python: "Functions & scope", dsa: "Sorting 1: Bubble / Selection", core: "TCP vs UDP", aptitude: "Speed, Time & Work", reasoning: "Syllogisms", verbal: "Synonyms", project: "Python: Average marks calculation" },
+                    { day: "Sun", date: "Oct 26", python: "Lists & Dictionaries", dsa: "Searching 1: Linear / Binary", core: "CPU Scheduling (FCFS, SJF)", aptitude: "Simple Interest & Profit/Loss", reasoning: "Coding puzzles", verbal: "Para jumbles", project: "Python: Grade calculator" },
+                    { day: "Mon", date: "Oct 27", python: "File handling", dsa: "Arrays practice (LeetCode Easy 1)", core: "Memory mgmt intro", aptitude: "Percentages & Ratio mixed", reasoning: "Blood relation problems", verbal: "Grammar exercises", project: "Python: Save data to CSV" },
+                    { day: "Tue", date: "Oct 28", python: "OOP: Classes & Objects intro", dsa: "Strings practice (LeetCode Easy 1)", core: "CN: IP, DNS basics", aptitude: "Time & Work", reasoning: "Direction puzzles", verbal: "Comprehension", project: 'Mini Project 1: "Student Marks Analyzer"' },
+                    { day: "Wed", date: "Oct 29", python: "Review Python basics", dsa: "DSA recap: Arrays + Strings", core: "OS/CN recap", aptitude: "Quant revision", reasoning: "Reasoning revision", verbal: "Verbal revision", project: "Finish Mini Project 1" }
+                ]
+            },
+            {
+                title: "Week 2 (Oct 30 – Nov 5) – Continue Base & Practice",
+                days: [
+                    { day: "Thu", date: "Oct 30", python: "Python functions recap", dsa: "LeetCode Easy: Arrays", core: "OS: Process states & scheduling", aptitude: "Speed & Distance", reasoning: "Blood relations & Directions", verbal: "Synonyms", project: "Mini Project 1 README" },
+                    { day: "Fri", date: "Oct 31", python: "Python modules, import, math", dsa: "LeetCode Easy: Strings", core: "CN: TCP vs UDP deep dive", aptitude: "Percentages + Average", reasoning: "Syllogisms", verbal: "Grammar", project: "Add error handling to Project 1" },
+                    { day: "Sat", date: "Nov 1", python: "Python file operations", dsa: "Sorting practice", core: "CN: IP & DNS exercises", aptitude: "Ratio & Proportion", reasoning: "Coding puzzles", verbal: "Comprehension", project: "Mini Project 1: CSV input/output" },
+                    { day: "Sun", date: "Nov 2", python: "Python OOP: Inheritance intro", dsa: "Stack basics", core: "OS: Deadlocks intro", aptitude: "Time & Work mixed", reasoning: "Direction puzzles", verbal: "Para jumbles", project: "Python small tool: Marks Analyzer CLI" },
+                    { day: "Mon", date: "Nov 3", python: "Python OOP: Polymorphism & Encapsulation", dsa: "Queue basics", core: "Memory management exercises", aptitude: "Simple Interest & Profit/Loss", reasoning: "Blood relations", verbal: "Reading comprehension", project: "Continue Mini Project 1" },
+                    { day: "Tue", date: "Nov 4", python: "Python recap: Lists/Dicts + File handling", dsa: "Linked List intro", core: "CN recap: Layers + IP", aptitude: "Speed, Time & Work", reasoning: "Syllogisms", verbal: "Grammar", project: "Project: Add visualization (matplotlib)" },
+                    { day: "Wed", date: "Nov 5", python: "Python practice problems", dsa: "DSA recap Week 1–2", core: "OS/CN recap", aptitude: "Quant + Aptitude revision", reasoning: "Reasoning recap", verbal: "Verbal recap", project: "Finalize Mini Project 1" }
+                ]
+            }
+        ];
+
+        // Add remaining weeks (3-14)
+        for (let w = 3; w <= 14; w++) {
+            weeksData.push({
+                title: `Week ${w} - Continued Learning`,
+                days: [
+                    { day: "Thu", date: `Week ${w} Day 1`, python: "Python/ML Practice", dsa: "DSA Practice", core: "Core CS", aptitude: "Aptitude", reasoning: "Reasoning", verbal: "Verbal", project: "Project work" },
+                    { day: "Fri", date: `Week ${w} Day 2`, python: "Python/ML Practice", dsa: "DSA Practice", core: "Core CS", aptitude: "Aptitude", reasoning: "Reasoning", verbal: "Verbal", project: "Project work" },
+                    { day: "Sat", date: `Week ${w} Day 3`, python: "Python/ML Practice", dsa: "DSA Practice", core: "Core CS", aptitude: "Aptitude", reasoning: "Reasoning", verbal: "Verbal", project: "Project work" },
+                    { day: "Sun", date: `Week ${w} Day 4`, python: "Python/ML Practice", dsa: "DSA Practice", core: "Core CS", aptitude: "Aptitude", reasoning: "Reasoning", verbal: "Verbal", project: "Project work" },
+                    { day: "Mon", date: `Week ${w} Day 5`, python: "Python/ML Practice", dsa: "DSA Practice", core: "Core CS", aptitude: "Aptitude", reasoning: "Reasoning", verbal: "Verbal", project: "Project work" },
+                    { day: "Tue", date: `Week ${w} Day 6`, python: "Python/ML Practice", dsa: "DSA Practice", core: "Core CS", aptitude: "Aptitude", reasoning: "Reasoning", verbal: "Verbal", project: "Project work" },
+                    { day: "Wed", date: `Week ${w} Day 7`, python: "Python/ML Practice", dsa: "DSA Practice", core: "Core CS", aptitude: "Aptitude", reasoning: "Reasoning", verbal: "Verbal", project: "Project work" }
+                ]
+            });
+        }
+
+        // Firebase Functions
+        async function loadProgressFromFirebase() {
+            if (!isFirebaseConfigured) {
+                // Fallback to localStorage if Firebase not configured
+                const saved = localStorage.getItem('shubham-tracker-progress');
+                if (saved) {
+                    progressData = JSON.parse(saved);
+                }
+                showSaveIndicator('📱 Using local storage (setup Firebase for sync)');
+                return;
+            }
+
+            try {
+                const snapshot = await database.ref(`users/${USER_ID}/progress`).once('value');
+                if (snapshot.exists()) {
+                    progressData = snapshot.val();
+                    showSaveIndicator('✅ Progress loaded from cloud');
+                } else {
+                    showSaveIndicator('🆕 Starting fresh');
+                }
+            } catch (error) {
+                console.error('Load error:', error);
+                showSaveIndicator('⚠️ Load failed, using local data');
+            }
+        }
+
+        async function saveProgressToFirebase() {
+            if (!isFirebaseConfigured) {
+                // Fallback to localStorage
+                localStorage.setItem('shubham-tracker-progress', JSON.stringify(progressData));
+                showSaveIndicator('💾 Saved locally');
+                return;
+            }
+
+            try {
+                await database.ref(`users/${USER_ID}/progress`).set(progressData);
+                showSaveIndicator('☁️ Synced to cloud');
+            } catch (error) {
+                console.error('Save error:', error);
+                showSaveIndicator('❌ Sync failed');
+            }
+        }
+
+        function showSaveIndicator(message) {
+            const indicator = document.getElementById('saveIndicator');
+            indicator.textContent = message;
+            setTimeout(() => {
+                if (isFirebaseConfigured) {
+                    indicator.textContent = '☁️ Auto-syncing across devices';
+                } else {
+                    indicator.textContent = '📱 Local storage only';
+                }
+            }, 2000);
+        }
+
+        // Initialize tracker
+        async function init() {
+            await loadProgressFromFirebase();
+            renderWeek(currentWeekIndex);
+            updateNavButtons();
+            updateStats();
+            attachEventListeners();
+        }
+
+        // Attach event listeners
+        function attachEventListeners() {
+            document.getElementById('prevBtn').addEventListener('click', previousWeek);
+            document.getElementById('nextBtn').addEventListener('click', nextWeek);
+            document.getElementById('todayBtn').addEventListener('click', goToToday);
+            document.getElementById('filterAll').addEventListener('click', () => filterDays('all'));
+            document.getElementById('filterCompleted').addEventListener('click', () => filterDays('completed'));
+            document.getElementById('filterPending').addEventListener('click', () => filterDays('pending'));
+            document.getElementById('resetBtn').addEventListener('click', resetProgress);
+            document.getElementById('exportBtn').addEventListener('click', exportReport);
+        }
+
+        // Render week
+        function renderWeek(weekIndex) {
+            const container = document.getElementById('daysContainer');
+            const week = weeksData[weekIndex];
+            
+            let html = `<h2 class="week-title">${week.title}</h2>`;
+            
+            week.days.forEach((day, dayIndex) => {
+                const dayId = `day-${weekIndex}-${dayIndex}`;
+                const isCompleted = progressData[dayId] || false;
+                
+                html += `
+                    <div class="day-card ${isCompleted ? 'completed' : ''}" id="${dayId}">
+                        <div class="day-header">
+                            <div class="day-info">
+                                <div class="day-name">${day.day}</div>
+                                <div class="day-date">${day.date}</div>
+                            </div>
+                            <button class="complete-day-btn ${isCompleted ? 'completed' : ''}" onclick="toggleDay('${dayId}')">
+                                ${isCompleted ? '✓ Completed' : '✓ Mark Complete'}
+                            </button>
+                        </div>
+                        <div class="tasks-grid">
+                            <div class="task-item">
+                                <div class="task-label">🐍 Python / ML</div>
+                                <div class="task-content">${day.python}</div>
+                            </div>
+                            <div class="task-item">
+                                <div class="task-label">💻 DSA</div>
+                                <div class="task-content">${day.dsa}</div>
+                            </div>
+                            <div class="task-item">
+                                <div class="task-label">🖥️ Core CS</div>
+                                <div class="task-content">${day.core}</div>
+                            </div>
+                            <div class="task-item">
+                                <div class="task-label">🧮 Aptitude</div>
+                                <div class="task-content">${day.aptitude}</div>
+                            </div>
+                            <div class="task-item">
+                                <div class="task-label">🧩 Reasoning</div>
+                                <div class="task-content">${day.reasoning}</div>
+                            </div>
+                            <div class="task-item">
+                                <div class="task-label">📝 Verbal</div>
+                                <div class="task-content">${day.verbal}</div>
+                            </div>
+                            <div class="task-item">
+                                <div class="task-label">🚀 Project / Test</div>
+                                <div class="task-content">${day.project}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+            applyFilter();
+        }
+
+        // Toggle day completion
+        async function toggleDay(dayId) {
+            const dayCard = document.getElementById(dayId);
+            const btn = dayCard.querySelector('.complete-day-btn');
+            
+            if (dayCard.classList.contains('completed')) {
+                dayCard.classList.remove('completed');
+                btn.classList.remove('completed');
+                btn.textContent = '✓ Mark Complete';
+                progressData[dayId] = false;
+            } else {
+                dayCard.classList.add('completed');
+                btn.classList.add('completed');
+                btn.textContent = '✓ Completed';
+                progressData[dayId] = true;
+            }
+            
+            updateStats();
+            await saveProgressToFirebase();
+        }
+
+        // Navigation functions
+        function previousWeek() {
+            if (currentWeekIndex > 0) {
+                currentWeekIndex--;
+                renderWeek(currentWeekIndex);
+                updateNavButtons();
+            }
+        }
+
+        function nextWeek() {
+            if (currentWeekIndex < weeksData.length - 1) {
+                currentWeekIndex++;
+                renderWeek(currentWeekIndex);
+                updateNavButtons();
+            }
+        }
+
+        function goToToday() {
+            currentWeekIndex = 0;
+            renderWeek(currentWeekIndex);
+            updateNavButtons();
+        }
+
+        function updateNavButtons() {
+            document.getElementById('prevBtn').disabled = currentWeekIndex === 0;
+            document.getElementById('nextBtn').disabled = currentWeekIndex === weeksData.length - 1;
+            document.getElementById('weekIndicator').textContent = `Week ${currentWeekIndex + 1} of ${weeksData.length}`;
+        }
+
+        // Filter functions
+        function filterDays(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`filter${filter.charAt(0).toUpperCase() + filter.slice(1)}`).classList.add('active');
+            applyFilter();
+        }
+
+        function applyFilter() {
+            const dayCards = document.querySelectorAll('.day-card');
+            dayCards.forEach(card => {
+                if (currentFilter === 'all') {
+                    card.style.display = 'block';
+                } else if (currentFilter === 'completed') {
+                    card.style.display = card.classList.contains('completed') ? 'block' : 'none';
+                } else if (currentFilter === 'pending') {
+                    card.style.display = !card.classList.contains('completed') ? 'block' : 'none';
+                }
+            });
+        }
+
+        // Stats update
+        function updateStats() {
+            let completedCount = Object.values(progressData).filter(v => v === true).length;
+            let percent = Math.round((completedCount / 98) * 100);
+            
+            document.getElementById('completedDays').textContent = completedCount;
+            document.getElementById('progressPercent').textContent = percent + '%';
+            
+            // Calculate streak
+            let streak = 0;
+            for (let w = 0; w < weeksData.length; w++) {
+                for (let d = 0; d < weeksData[w].days.length; d++) {
+                    const dayId = `day-${w}-${d}`;
+                    if (progressData[dayId]) {
+                        streak++;
+                    } else {
+                        if (streak > 0) {
+                            document.getElementById('currentStreak').textContent = streak;
+                            return;
+                        }
+                    }
+                }
+            }
+            document.getElementById('currentStreak').textContent = streak;
+        }
+
+        // Reset progress
+        async function resetProgress() {
+            if (confirm('⚠️ Are you sure you want to reset all progress? This cannot be undone!')) {
+                progressData = {};
+                await saveProgressToFirebase();
+                renderWeek(currentWeekIndex);
+                updateStats();
+                showSaveIndicator('✅ Progress reset');
+            }
+        }
+
+        // Export report
+        function exportReport() {
+            let completedCount = Object.values(progressData).filter(v => v === true).length;
+            let percent = Math.round((completedCount / 98) * 100);
+            
+            let report = `📊 Shubham's 14-Week Job Comeback Tracker - Progress Report\n`;
+            report += `📅 Generated: ${new Date().toLocaleDateString()}\n\n`;
+            report += `📈 Overall Progress:\n`;
+            report += `- Completed Days: ${completedCount}/98\n`;
+            report += `- Progress: ${percent}%\n`;
+            report += `- Current Streak: ${document.getElementById('currentStreak').textContent} days\n\n`;
+            
+            report += `✅ Completed Days:\n`;
+            for (let w = 0; w < weeksData.length; w++) {
+                let weekCompleted = [];
+                for (let d = 0; d < weeksData[w].days.length; d++) {
+                    const dayId = `day-${w}-${d}`;
+                    if (progressData[dayId]) {
+                        weekCompleted.push(weeksData[w].days[d].date);
+                    }
+                }
+                if (weekCompleted.length > 0) {
+                    report += `\nWeek ${w + 1}: ${weekCompleted.join(', ')}\n`;
+                }
+            }
+            
+            navigator.clipboard.writeText(report).then(() => {
+                alert('📋 Progress report copied to clipboard!');
+            }).catch(() => {
+                alert('❌ Could not copy to clipboard. Please try again.');
+            });
+        }
+
+        // Start the app
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
